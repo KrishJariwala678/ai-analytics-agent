@@ -19,10 +19,9 @@ Madhya Pradesh - Indore
 Anomaly target: Maharashtra / Mumbai
 
 ### Anomaly injection spec
-Anomaly injection:
-
-Window: June 10–14 (5 days), roughly mid-year so there's baseline data before and after
-Segment: device = 'mobile', state = 'Maharashtra' city - 'Mumbai', payment_method = 'UPI'
+Analysis window: 2025-01-01 to 2025-12-31 (full 12 months — governs date_dim, sessions, orders, order_items, and payments)
+Anomaly window: June 10–14, 2025 (5 days), roughly mid-year so there's baseline data before and after
+Segment: device = 'mobile', state = 'Maharashtra', city = 'Mumbai', payment_method = 'UPI'
 Baseline UPI failure rate: 5%
 Injected failure rate during the window: 38%
 
