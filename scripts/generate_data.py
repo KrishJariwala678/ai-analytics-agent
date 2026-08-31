@@ -3,6 +3,8 @@ import duckdb
 from faker import Faker
 from datetime import date
 
+con = duckdb.connect("data/analytics.duckdb")
+
 # Reproducible randomness
 random.seed(42)
 
@@ -44,10 +46,7 @@ for customer_id in range(1, 801):
     }
 
     customers.append(customer)
-
-# Display first 10 customers
-for customer in customers[:5]:
-    print(customer)
+ 
 
 product_categories = {
     "Formal Wear": [
@@ -141,14 +140,100 @@ for product_id in range(1, 61):
         "product_name": product_name,
         "category": category,
         "brand": brand,
-        "price": price,
+        "unit_price": price,
         "is_active": is_active
     }
 
     products.append(product)
 
-# Display first 5 products
-print("\nFirst 5 products:")
-for product in products[:5]:
-    print(product)
 
+marketing_channels = [
+    {
+        "marketing_channel_id" : 1,
+        "channel_name" : "Paid Search",
+        "channel_type" : "Paid",
+        "source" : "Google ads"
+    },
+    {
+        "marketing_channel_id" : 2,
+        "channel_name" : "Organic Search",
+        "channel_type" : "Organic",
+        "source" : None
+    },
+    {
+        "marketing_channel_id" : 3,
+        "channel_name" : "Email",
+        "channel_type" : "Owned",
+        "source" : "Mailchimp"
+    },
+    {
+        "marketing_channel_id" : 4,
+        "channel_name" : "Social Media",
+        "channel_type" : "Paid",
+        "source" : "Instagram"
+    },
+    {
+        "marketing_channel_id" : 5,
+        "channel_name" : "Direct",
+        "channel_type" : "Direct",
+        "source" : None
+    },
+    {
+        "marketing_channel_id" : 6,
+        "channel_name" : "Referral",
+        "channel_type" : "Referral",
+        "source" : "Partner Site"
+    }
+]
+
+## INSERTING VALUES IN MARKETING_CHANNEL TABLE
+con.execute("DELETE FROM marketing_channels")
+query3 = """
+INSERT INTO marketing_channels (marketing_channel_id, channel_name, channel_type, source)
+VALUES (?, ?, ?, ?)
+"""
+
+for row in marketing_channels:
+    con.execute(query3, [
+        row["marketing_channel_id"],
+        row["channel_name"],
+        row["channel_type"],
+        row["source"]
+    ])
+
+print("marketing_channels inserted successfully.")
+
+## INSERTING VALUES IN CUSTOMERS TABLE
+
+con.execute("DELETE FROM customers")
+query1 = """
+INSERT INTO customers(customer_id,name,email,region,city,created_date)
+VALUES(?,?,?,?,?,?)
+"""
+for row in customers:
+    con.execute(query1,[
+        row["customer_id"],
+        row["name"],
+        row["email"],
+        row["region"],
+        row["city"],
+        row["created_date"]
+    ])
+print("customers inserted successfully.")
+
+## INSERTING VALUES IN PRODUCTS TABLE
+con.execute("DELETE FROM products")
+query2 = """
+INSERT INTO products(product_id,product_name, category,brand,unit_price,is_active)
+VALUES(?,?,?,?,?,?)
+"""
+for row in products:
+    con.execute(query2,[
+        row["product_id"],
+        row["product_name"],
+        row["category"],
+        row["brand"],
+        row["unit_price"],
+        row["is_active"]
+    ])
+print("products inserted successfully.")
