@@ -1,7 +1,7 @@
 import random
 import duckdb
 from faker import Faker
-from datetime import date
+from datetime import date,timedelta
 
 con = duckdb.connect("data/analytics.duckdb")
 
@@ -237,3 +237,46 @@ for row in products:
         row["is_active"]
     ])
 print("products inserted successfully.")
+
+## generating date_dim
+
+end_date = date(2025,12,31)
+start_date = date(2025,1,1)
+date_dim = []
+current_date = start_date
+while current_date <= end_date:
+    row = {
+        "date_id": int(current_date.strftime("%Y%m%d")),
+        "calendar_date":current_date,
+        "year":current_date.year,
+        "quarter":(current_date.month - 1) // 3 + 1,
+        "month":current_date.month,
+        "month_name" : current_date.strftime("%B"),
+        "week" : current_date.isocalendar().week, 
+        "day_of_week" : current_date.weekday(),
+        "day_name" : current_date.strftime("%A")
+    }  
+    date_dim.append(row)
+    current_date += timedelta(days=1)
+
+con.execute("DELETE FROM date_dim")
+
+query4 = """
+INSERT INTO date_dim(date_id,calendar_date,year,quarter,month,month_name,week,day_of_week,day_name)
+VALUES(?,?,?,?,?,?,?,?,?)
+"""
+
+for row in date_dim:
+    con.execute(query4,[
+        row["date_id"],
+        row["calendar_date"],
+        row["year"],
+        row["quarter"],
+        row["month"],
+        row["month_name"],
+        row["week"],
+        row["day_of_week"],
+        row["day_name"],
+    ])
+
+print("date_dim inserted successfully.")
