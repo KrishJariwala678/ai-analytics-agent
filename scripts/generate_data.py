@@ -5,6 +5,8 @@ from datetime import date,timedelta
 
 con = duckdb.connect("data/analytics.duckdb")
 
+con.execute("DELETE FROM sessions")
+
 # Reproducible randomness
 random.seed(42)
 
@@ -280,3 +282,89 @@ for row in date_dim:
     ])
 
 print("date_dim inserted successfully.")
+
+## Sessions data
+
+session_counts = [1,2,3,4,5,6,7,8]
+session_count_weights = [20,20,18,15,10,8,5,4]
+
+devices = ["Mobile","Desktop"]
+device_weights = [60,40]
+
+channel_ids = [1,2,3,4,5,6]
+channel_weights = [25,30,10,15,15,5]
+
+months = list(range(1,13))
+month_weights = [1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1.5]
+
+sessions = []
+session_id = 1
+
+for cust in customers:
+    num_sessions = random.choices(session_counts, weights = session_count_weights, k=1)[0]
+
+    for _ in range(num_sessions):
+        is_anonymous = random.random() < 0.15  # 15% anonymous
+
+        if is_anonymous:
+            customer_id = None
+            region = random.choice(["Maharashtra", "Delhi", "Karnataka", "Tamil Nadu", "Madhya Pradesh", "West Bengal"])
+            city = "Unknown"
+        else:
+            customer_id = cust["customer_id"]
+            region = cust["region"]
+            city = cust["city"]
+
+        device = random.choices(devices, weights=device_weights, k=1)[0]
+        marketing_channel_id = random.choices(channel_ids, weights=channel_weights, k=1)[0]
+
+        # Pick a random month (weighted), then a random day within that month
+        month = random.choices(months, weights=month_weights, k=1)[0]
+        import calendar
+        days_in_month = calendar.monthrange(2025, month)[1]
+        day = random.randint(1, days_in_month)
+        session_start_date = date(2025, month, day)
+        session_end_date = session_start_date  # same day, for simplicity
+
+        row = {
+            "session_id": session_id,
+            "customer_id": customer_id,
+            "session_start_date": session_start_date,
+            "session_end_date": session_end_date,
+            "device": device,
+            "region": region,
+            "city": city,
+            "marketing_channel_id": marketing_channel_id,
+            "converted_order_id": None
+        }
+        sessions.append(row)
+        session_id += 1
+
+print(len(sessions))
+print(sessions[0])
+print(sessions[-1])
+
+
+query = """
+INSERT INTO sessions (session_id, customer_id, session_start_date, session_end_date, device, region, city, marketing_channel_id, converted_order_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+"""
+
+for row in sessions:
+    con.execute(query, [
+        row["session_id"],
+        row["customer_id"],
+        row["session_start_date"],
+        row["session_end_date"],
+        row["device"],
+        row["region"],
+        row["city"],
+        row["marketing_channel_id"],
+        row["converted_order_id"]
+    ])
+
+print("sessions inserted successfully.")
+
+from collections import Counter
+print(Counter(row["device"] for row in sessions))
+print(Counter(row["customer_id"] is None for row in sessions))
